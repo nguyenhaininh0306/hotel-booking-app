@@ -7,6 +7,8 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Button } from '../ui/button'
 import SearchInput from '../SearchInput'
+import { ModeToggle } from '../theme-toggle'
+import { NavMenu } from './NavMenu'
 
 const Navbar = () => {
   const router = useRouter()
@@ -27,7 +29,10 @@ const Navbar = () => {
           <SearchInput />
 
           <div className="flex gap-4 items-center">
-            <div>theme</div>
+            <div className="flex gap-4">
+              <ModeToggle />
+              <NavMenu />
+            </div>
 
             {!userId ? (
               <>
