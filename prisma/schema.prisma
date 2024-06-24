@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
   // uncomment next line if you use Prisma <5.10
   // directUrl = env("DATABASE_URL_UNPOOLED")
@@ -20,12 +20,12 @@ model Hotel {
   id                  String    @id @default(uuid())
   userId              String
   title               String    @db.Text
-  description         String    @db.LongText
+  description         String    @db.VarChar(255)
   image               String
   country             String
   state               String
   city                String
-  locationDescription String    @db.LongText
+  locationDescription String    @db.VarChar(255)
   gym                 Boolean   @default(false)
   spa                 Boolean   @default(false)
   bar                 Boolean   @default(false)
@@ -42,14 +42,12 @@ model Hotel {
   updatedAt           DateTime  @default(now())
   rooms               Room[]
   bookings            Booking[]
-
-  @@fulltext([title])
 }
 
 model Room {
   id             String  @id @default(uuid())
   title          String
-  description    String  @db.LongText
+  description    String  @db.VarChar(255)
   bedCount       Int     @default(0)
   guestCount     Int     @default(0)
   bathroomCount  Int     @default(0)
