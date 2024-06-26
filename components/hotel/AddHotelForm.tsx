@@ -1,7 +1,7 @@
 'use client'
 
 import { Hotel, Room } from '@prisma/client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -15,7 +15,6 @@ import {
 } from '../ui/form'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
-import { Checkbox } from '../ui/checkbox'
 import AmenitiesOption from './AmenitiesOption'
 import { UploadButton } from '../uploadthing'
 import { useToast } from '../ui/use-toast'
@@ -23,6 +22,17 @@ import Image from 'next/image'
 import { Button } from '../ui/button'
 import { Loader2, XCircle } from 'lucide-react'
 import axios from 'axios'
+import useLocation from '@/hooks/useLocation'
+import { ICity, IState } from 'country-state-city'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select'
+import UploadImage from '../common/UploadImage'
+import LocationSelect from './LocationSelect'
 
 interface AddHotelFormProps {
   hotel: HotelWithRooms | null
@@ -67,7 +77,14 @@ const formSchema = z.object({
 const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
   const [image, setImage] = useState<string | undefined>()
   const [imageIsDeleting, setImageDeleting] = useState(false)
+  const [states, setStates] = useState<IState[]>([])
+  const [cities, setCities] = useState<ICity[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+
   const { toast } = useToast()
+
+  const { getAllCountries, getCountryStates, getStateCities } = useLocation()
+  const countries = getAllCountries()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -94,9 +111,33 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
     },
   })
 
+  useEffect(() => {
+    const selectedCountry = form.watch('country')
+    const countryStates = getCountryStates(selectedCountry)
+
+    if (countryStates) {
+      setStates(countryStates)
+      form.setValue('state', '')
+      form.setValue('city', '')
+    }
+  }, [form.watch('country')])
+
+  useEffect(() => {
+    const selectedCountry = form.watch('country')
+    const selectedState = form.watch('state')
+    const stateCities = getStateCities(selectedCountry, selectedState)
+
+    if (stateCities) {
+      setCities(stateCities)
+      form.setValue('city', '')
+    }
+  }, [form.watch('country'), form.watch('state')])
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values)
   }
+
+  console.log('ssss', form.getValues())
 
   const handleImageDelete = (image: string) => {
     setImageDeleting(true)
@@ -168,64 +209,25 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
 
               <AmenitiesOption form={form} />
 
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col space-y-3">
-                    <FormLabel>Upload an Image *</FormLabel>
-                    <FormDescription>
-                      Choose an image that will show-case your hotel
-                    </FormDescription>
-                    <FormControl>
-                      {image ? (
-                        <div className="relative max-w-[400px] min-w-[200px] max-h-[400px] min-h-[200px] mt-4">
-                          <Image
-                            src={image}
-                            alt=""
-                            fill
-                            className="object-contain"
-                          />
-                          <Button
-                            onClick={() => handleImageDelete(image)}
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="absolute right-[-12px] top-0"
-                          >
-                            {imageIsDeleting ? <Loader2 /> : <XCircle />}
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center max-w-[4000px] p-12 border-2 border-dashed border-primary/50 rounded mt-4">
-                          <UploadButton
-                            endpoint="imageUploader"
-                            onClientUploadComplete={(res) => {
-                              // Do something with the response
-                              console.log('Files: ', res)
-                              setImage(res[0].url)
-                              toast({
-                                variant: 'success',
-                                description: 'Upload Completed',
-                              })
-                            }}
-                            onUploadError={(error: Error) => {
-                              // Do something with the error.
-                              toast({
-                                variant: 'destructive',
-                                description: `${error.message}`,
-                              })
-                            }}
-                          />
-                        </div>
-                      )}
-                    </FormControl>
-                  </FormItem>
-                )}
+              <UploadImage
+                form={form}
+                image={image}
+                setImage={setImage}
+                imageIsDeleting={imageIsDeleting}
+                handleImageDelete={handleImageDelete}
+                toast={toast}
               />
             </div>
 
-            <div className="flex-1 flex flex-col gap-6"> par2</div>
+            <div className="flex-1 flex flex-col gap-6">
+              <LocationSelect
+                form={form}
+                isLoading={isLoading}
+                countries={countries}
+                states={states}
+                cities={cities}
+              />
+            </div>
           </div>
         </form>
       </Form>
