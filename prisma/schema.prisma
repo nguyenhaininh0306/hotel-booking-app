@@ -32,7 +32,7 @@ model Hotel {
   laundry             Boolean   @default(false)
   restaurant          Boolean   @default(false)
   shopping            Boolean   @default(false)
-  freePaking          Boolean   @default(false)
+  freeParking         Boolean   @default(false)
   bikeRental          Boolean   @default(false)
   freeWifi            Boolean   @default(false)
   movieNights         Boolean   @default(false)
