@@ -5,6 +5,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '../ui/form'
 import Image from 'next/image'
 import { Button } from '../ui/button'
@@ -76,6 +77,7 @@ const UploadImage = ({
               </div>
             )}
           </FormControl>
+          <FormMessage />
         </FormItem>
       )}
     />

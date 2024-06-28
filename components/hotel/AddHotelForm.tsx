@@ -12,6 +12,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '../ui/form'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
@@ -20,19 +21,13 @@ import { UploadButton } from '../uploadthing'
 import { useToast } from '../ui/use-toast'
 import Image from 'next/image'
 import { Button } from '../ui/button'
-import { Loader2, XCircle } from 'lucide-react'
+import { Loader2, Pencil, PencilLineIcon, XCircle } from 'lucide-react'
 import axios from 'axios'
 import useLocation from '@/hooks/useLocation'
 import { ICity, IState } from 'country-state-city'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select'
 import UploadImage from '../common/UploadImage'
 import LocationSelect from './LocationSelect'
+import { useRouter } from 'next/navigation'
 
 interface AddHotelFormProps {
   hotel: HotelWithRooms | null
@@ -75,20 +70,21 @@ const formSchema = z.object({
 })
 
 const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
-  const [image, setImage] = useState<string | undefined>()
+  const [image, setImage] = useState<string | undefined>(hotel?.image)
   const [imageIsDeleting, setImageDeleting] = useState(false)
   const [states, setStates] = useState<IState[]>([])
   const [cities, setCities] = useState<ICity[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   const { toast } = useToast()
+  const router = useRouter()
 
   const { getAllCountries, getCountryStates, getStateCities } = useLocation()
   const countries = getAllCountries()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: hotel || {
       title: '',
       description: '',
       image: '',
@@ -112,13 +108,21 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
   })
 
   useEffect(() => {
+    if (typeof image === 'string') {
+      form.setValue('image', image, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+    }
+  }, [image])
+
+  useEffect(() => {
     const selectedCountry = form.watch('country')
     const countryStates = getCountryStates(selectedCountry)
 
     if (countryStates) {
       setStates(countryStates)
-      form.setValue('state', '')
-      form.setValue('city', '')
     }
   }, [form.watch('country')])
 
@@ -129,15 +133,58 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
 
     if (stateCities) {
       setCities(stateCities)
-      form.setValue('city', '')
     }
   }, [form.watch('country'), form.watch('state')])
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
-  }
+    setIsLoading(true)
 
-  console.log('ssss', form.getValues())
+    if (hotel) {
+      //update
+      axios
+        .patch(`/api/hotel/${hotel.id}`, values)
+        .then((res) => {
+          toast({
+            variant: 'success',
+            description: 'Hotel updated!!!',
+          })
+
+          router.push(`/hotel/${res.data.id}`)
+          setIsLoading(false)
+        })
+        .catch((err) => {
+          console.log(err)
+          toast({
+            variant: 'destructive',
+            description: 'Something went wrong!',
+          })
+
+          setIsLoading(false)
+        })
+    } else {
+      //create
+      axios
+        .post('/api/hotel', values)
+        .then((res) => {
+          toast({
+            variant: 'success',
+            description: 'Hotel created!!!',
+          })
+
+          router.push(`/hotel/${res.data.id}`)
+          setIsLoading(false)
+        })
+        .catch((err) => {
+          console.log(err)
+          toast({
+            variant: 'destructive',
+            description: 'Something went wrong!',
+          })
+
+          setIsLoading(false)
+        })
+    }
+  }
 
   const handleImageDelete = (image: string) => {
     setImageDeleting(true)
@@ -184,6 +231,7 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                     <FormControl>
                       <Input placeholder="Beach Hotel" {...field} />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -203,6 +251,7 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -227,6 +276,42 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                 states={states}
                 cities={cities}
               />
+
+              <div className="flex justify-between gap-2 flex-wrap">
+                {hotel ? (
+                  <Button
+                    disabled={isLoading}
+                    className="max-w-[150px]"
+                    type="submit"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4" /> Updating
+                      </>
+                    ) : (
+                      <>
+                        <PencilLineIcon className="mr-2 h-4 w-4" /> Update
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    disabled={isLoading}
+                    className="max-w-[150px]"
+                    type="submit"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4" /> Creating
+                      </>
+                    ) : (
+                      <>
+                        <Pencil className="mr-2 h-4 w-4" /> Create Hotel
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </form>

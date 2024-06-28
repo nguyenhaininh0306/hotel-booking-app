@@ -5,6 +5,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '../ui/form'
 import {
   Select,
@@ -18,18 +19,28 @@ import { Textarea } from '../ui/textarea'
 interface LocationSelectProps {
   form: any
   isLoading: boolean
-  countries: Array[]
-  states: Array[]
+  countries: CountryArray[]
+  states: StateArray[]
   cities: CitiesArray[]
 }
 
-interface Array {
+interface CountryArray {
   isoCode: string
   name: string
+  currency: string
+  flag: string
+}
+
+interface StateArray {
+  isoCode: string
+  name: string
+  countryCode: string
 }
 
 interface CitiesArray {
   name: string
+  countryCode: string
+  stateCode: string
 }
 
 const LocationSelect = ({
@@ -53,7 +64,11 @@ const LocationSelect = ({
               </FormDescription>
               <Select
                 disabled={isLoading}
-                onValueChange={field.onChange}
+                onValueChange={(val) => {
+                  form.setValue('state', '')
+                  form.setValue('city', '')
+                  field.onChange(val)
+                }}
                 value={field.value}
                 defaultValue={field.value}
               >
@@ -71,6 +86,7 @@ const LocationSelect = ({
                   ))}
                 </SelectContent>
               </Select>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -86,7 +102,10 @@ const LocationSelect = ({
               </FormDescription>
               <Select
                 disabled={isLoading || states.length < 1}
-                onValueChange={field.onChange}
+                onValueChange={(val) => {
+                  form.setValue('city', '')
+                  field.onChange(val)
+                }}
                 value={field.value}
                 defaultValue={field.value}
               >
@@ -157,6 +176,7 @@ const LocationSelect = ({
                 {...field}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
