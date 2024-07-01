@@ -21,13 +21,30 @@ import { UploadButton } from '../uploadthing'
 import { useToast } from '../ui/use-toast'
 import Image from 'next/image'
 import { Button } from '../ui/button'
-import { Loader2, Pencil, PencilLineIcon, XCircle } from 'lucide-react'
+import {
+  Eye,
+  Loader2,
+  Pencil,
+  PencilLineIcon,
+  Trash,
+  XCircle,
+} from 'lucide-react'
 import axios from 'axios'
 import useLocation from '@/hooks/useLocation'
 import { ICity, IState } from 'country-state-city'
 import UploadImage from '../common/UploadImage'
 import LocationSelect from './LocationSelect'
 import { useRouter } from 'next/navigation'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog'
 
 interface AddHotelFormProps {
   hotel: HotelWithRooms | null
@@ -72,6 +89,7 @@ const formSchema = z.object({
 const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
   const [image, setImage] = useState<string | undefined>(hotel?.image)
   const [imageIsDeleting, setImageDeleting] = useState(false)
+  const [isHotelDeleting, setIsHotelDeleting] = useState(false)
   const [states, setStates] = useState<IState[]>([])
   const [cities, setCities] = useState<ICity[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -212,6 +230,32 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
       })
   }
 
+  const handleDeleteHotel = async (hotel: HotelWithRooms) => {
+    setIsHotelDeleting(true)
+    const getImageKey = (src: string) => src.substring(src.lastIndexOf('/') + 1)
+
+    try {
+      const imageKey = getImageKey(hotel.image)
+      await axios.post('/api/uploadthing/delete', { imageKey })
+      await axios.delete(`/api/hotel/${hotel.id}`)
+
+      setIsHotelDeleting(false)
+
+      toast({
+        variant: 'success',
+        description: 'Hotel Deleted!',
+      })
+
+      router.push('/hotel/new')
+    } catch (error: any) {
+      console.log('error: ', error)
+      toast({
+        variant: 'destructive',
+        description: `Hotel deletion could be completed! ${error.message}`,
+      })
+    }
+  }
+
   return (
     <div>
       <Form {...form}>
@@ -283,6 +327,7 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                     disabled={isLoading}
                     className="max-w-[150px]"
                     type="submit"
+                    variant="outline"
                   >
                     {isLoading ? (
                       <>
@@ -299,6 +344,7 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                     disabled={isLoading}
                     className="max-w-[150px]"
                     type="submit"
+                    variant="outline"
                   >
                     {isLoading ? (
                       <>
@@ -311,6 +357,62 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                     )}
                   </Button>
                 )}
+
+                {hotel && (
+                  <Button
+                    type="button"
+                    onClick={() => router.push(`/hotel-detail/${hotel.id}`)}
+                    variant="outline"
+                  >
+                    <Eye className="mr-2 h-4 w-4" /> View
+                  </Button>
+                )}
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    {hotel && (
+                      <Button
+                        variant="destructive"
+                        type="button"
+                        className="max-w-[150px]"
+                        disabled={isHotelDeleting || isLoading}
+                      >
+                        {isHotelDeleting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4" /> Deleting
+                          </>
+                        ) : (
+                          <>
+                            <Trash className="mr-2 h-4 w-4" /> Delete
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </DialogTrigger>
+
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Delete</DialogTitle>
+                      <DialogDescription>
+                        Do you want delete hotel ?
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter className=" justify-center">
+                      {hotel && (
+                        <Button
+                          onClick={() => handleDeleteHotel(hotel)}
+                          variant="destructive"
+                          type="button"
+                          className="max-w-[150px]"
+                          disabled={isHotelDeleting || isLoading}
+                        >
+                          <Trash className="mr-2 h-4 w-4" /> Delete
+                        </Button>
+                      )}
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </div>

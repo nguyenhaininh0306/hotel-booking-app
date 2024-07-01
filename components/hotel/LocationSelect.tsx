@@ -17,7 +17,7 @@ import {
 import { Textarea } from '../ui/textarea'
 
 interface LocationSelectProps {
-  form: any
+  form: React.ReactNode | any
   isLoading: boolean
   countries: CountryArray[]
   states: StateArray[]
