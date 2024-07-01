@@ -30,7 +30,6 @@ const Navbar = () => {
 
           <div className="flex gap-4 items-center">
             <div className="flex gap-4">
-              <ModeToggle />
               <NavMenu />
             </div>
 
