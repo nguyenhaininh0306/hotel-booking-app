@@ -1,7 +1,7 @@
 'use client'
 
 import { Hotel, Room } from '@prisma/client'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -12,17 +12,39 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '../ui/form'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
-import { Checkbox } from '../ui/checkbox'
 import AmenitiesOption from './AmenitiesOption'
 import { UploadButton } from '../uploadthing'
 import { useToast } from '../ui/use-toast'
 import Image from 'next/image'
 import { Button } from '../ui/button'
-import { Loader2, XCircle } from 'lucide-react'
+import {
+  Eye,
+  Loader2,
+  Pencil,
+  PencilLineIcon,
+  Trash,
+  XCircle,
+} from 'lucide-react'
 import axios from 'axios'
+import useLocation from '@/hooks/useLocation'
+import { ICity, IState } from 'country-state-city'
+import UploadImage from '../common/UploadImage'
+import LocationSelect from './LocationSelect'
+import { useRouter } from 'next/navigation'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog'
 
 interface AddHotelFormProps {
   hotel: HotelWithRooms | null
@@ -65,13 +87,22 @@ const formSchema = z.object({
 })
 
 const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
-  const [image, setImage] = useState<string | undefined>()
+  const [image, setImage] = useState<string | undefined>(hotel?.image)
   const [imageIsDeleting, setImageDeleting] = useState(false)
+  const [isHotelDeleting, setIsHotelDeleting] = useState(false)
+  const [states, setStates] = useState<IState[]>([])
+  const [cities, setCities] = useState<ICity[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+
   const { toast } = useToast()
+  const router = useRouter()
+
+  const { getAllCountries, getCountryStates, getStateCities } = useLocation()
+  const countries = getAllCountries()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: hotel || {
       title: '',
       description: '',
       image: '',
@@ -94,8 +125,83 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
     },
   })
 
+  useEffect(() => {
+    if (typeof image === 'string') {
+      form.setValue('image', image, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+    }
+  }, [image])
+
+  useEffect(() => {
+    const selectedCountry = form.watch('country')
+    const countryStates = getCountryStates(selectedCountry)
+
+    if (countryStates) {
+      setStates(countryStates)
+    }
+  }, [form.watch('country')])
+
+  useEffect(() => {
+    const selectedCountry = form.watch('country')
+    const selectedState = form.watch('state')
+    const stateCities = getStateCities(selectedCountry, selectedState)
+
+    if (stateCities) {
+      setCities(stateCities)
+    }
+  }, [form.watch('country'), form.watch('state')])
+
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+    setIsLoading(true)
+
+    if (hotel) {
+      //update
+      axios
+        .patch(`/api/hotel/${hotel.id}`, values)
+        .then((res) => {
+          toast({
+            variant: 'success',
+            description: 'Hotel updated!!!',
+          })
+
+          router.push(`/hotel/${res.data.id}`)
+          setIsLoading(false)
+        })
+        .catch((err) => {
+          console.log(err)
+          toast({
+            variant: 'destructive',
+            description: 'Something went wrong!',
+          })
+
+          setIsLoading(false)
+        })
+    } else {
+      //create
+      axios
+        .post('/api/hotel', values)
+        .then((res) => {
+          toast({
+            variant: 'success',
+            description: 'Hotel created!!!',
+          })
+
+          router.push(`/hotel/${res.data.id}`)
+          setIsLoading(false)
+        })
+        .catch((err) => {
+          console.log(err)
+          toast({
+            variant: 'destructive',
+            description: 'Something went wrong!',
+          })
+
+          setIsLoading(false)
+        })
+    }
   }
 
   const handleImageDelete = (image: string) => {
@@ -124,6 +230,32 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
       })
   }
 
+  const handleDeleteHotel = async (hotel: HotelWithRooms) => {
+    setIsHotelDeleting(true)
+    const getImageKey = (src: string) => src.substring(src.lastIndexOf('/') + 1)
+
+    try {
+      const imageKey = getImageKey(hotel.image)
+      await axios.post('/api/uploadthing/delete', { imageKey })
+      await axios.delete(`/api/hotel/${hotel.id}`)
+
+      setIsHotelDeleting(false)
+
+      toast({
+        variant: 'success',
+        description: 'Hotel Deleted!',
+      })
+
+      router.push('/hotel/new')
+    } catch (error: any) {
+      console.log('error: ', error)
+      toast({
+        variant: 'destructive',
+        description: `Hotel deletion could be completed! ${error.message}`,
+      })
+    }
+  }
+
   return (
     <div>
       <Form {...form}>
@@ -143,6 +275,7 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                     <FormControl>
                       <Input placeholder="Beach Hotel" {...field} />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -162,70 +295,126 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
 
               <AmenitiesOption form={form} />
 
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col space-y-3">
-                    <FormLabel>Upload an Image *</FormLabel>
-                    <FormDescription>
-                      Choose an image that will show-case your hotel
-                    </FormDescription>
-                    <FormControl>
-                      {image ? (
-                        <div className="relative max-w-[400px] min-w-[200px] max-h-[400px] min-h-[200px] mt-4">
-                          <Image
-                            src={image}
-                            alt=""
-                            fill
-                            className="object-contain"
-                          />
-                          <Button
-                            onClick={() => handleImageDelete(image)}
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="absolute right-[-12px] top-0"
-                          >
-                            {imageIsDeleting ? <Loader2 /> : <XCircle />}
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center max-w-[4000px] p-12 border-2 border-dashed border-primary/50 rounded mt-4">
-                          <UploadButton
-                            endpoint="imageUploader"
-                            onClientUploadComplete={(res) => {
-                              // Do something with the response
-                              console.log('Files: ', res)
-                              setImage(res[0].url)
-                              toast({
-                                variant: 'success',
-                                description: 'Upload Completed',
-                              })
-                            }}
-                            onUploadError={(error: Error) => {
-                              // Do something with the error.
-                              toast({
-                                variant: 'destructive',
-                                description: `${error.message}`,
-                              })
-                            }}
-                          />
-                        </div>
-                      )}
-                    </FormControl>
-                  </FormItem>
-                )}
+              <UploadImage
+                form={form}
+                image={image}
+                setImage={setImage}
+                imageIsDeleting={imageIsDeleting}
+                handleImageDelete={handleImageDelete}
+                toast={toast}
               />
             </div>
 
-            <div className="flex-1 flex flex-col gap-6"> par2</div>
+            <div className="flex-1 flex flex-col gap-6">
+              <LocationSelect
+                form={form}
+                isLoading={isLoading}
+                countries={countries}
+                states={states}
+                cities={cities}
+              />
+
+              <div className="flex justify-between gap-2 flex-wrap">
+                {hotel ? (
+                  <Button
+                    disabled={isLoading}
+                    className="max-w-[150px]"
+                    type="submit"
+                    variant="outline"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4" /> Updating
+                      </>
+                    ) : (
+                      <>
+                        <PencilLineIcon className="mr-2 h-4 w-4" /> Update
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    disabled={isLoading}
+                    className="max-w-[150px]"
+                    type="submit"
+                    variant="outline"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4" /> Creating
+                      </>
+                    ) : (
+                      <>
+                        <Pencil className="mr-2 h-4 w-4" /> Create Hotel
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {hotel && (
+                  <Button
+                    type="button"
+                    onClick={() => router.push(`/hotel-detail/${hotel.id}`)}
+                    variant="outline"
+                  >
+                    <Eye className="mr-2 h-4 w-4" /> View
+                  </Button>
+                )}
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    {hotel && (
+                      <Button
+                        variant="destructive"
+                        type="button"
+                        className="max-w-[150px]"
+                        disabled={isHotelDeleting || isLoading}
+                      >
+                        {isHotelDeleting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4" /> Deleting
+                          </>
+                        ) : (
+                          <>
+                            <Trash className="mr-2 h-4 w-4" /> Delete
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </DialogTrigger>
+
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Delete</DialogTitle>
+                      <DialogDescription>
+                        Do you want delete hotel ?
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter className=" justify-center">
+                      {hotel && (
+                        <Button
+                          onClick={() => handleDeleteHotel(hotel)}
+                          variant="destructive"
+                          type="button"
+                          className="max-w-[150px]"
+                          disabled={isHotelDeleting || isLoading}
+                        >
+                          <Trash className="mr-2 h-4 w-4" /> Delete
+                        </Button>
+                      )}
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
           </div>
         </form>
       </Form>

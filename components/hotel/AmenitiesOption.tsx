@@ -8,7 +8,7 @@ import {
 } from '../ui/form'
 import { Checkbox } from '../ui/checkbox'
 
-const AmenitiesOption = ({ form }: { form: any }) => {
+const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
   return (
     <div>
       <FormLabel>Choose Amenities</FormLabel>
