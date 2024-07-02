@@ -17,17 +17,17 @@ import {
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 import AmenitiesOption from './AmenitiesOption'
-import { UploadButton } from '../uploadthing'
 import { useToast } from '../ui/use-toast'
-import Image from 'next/image'
 import { Button } from '../ui/button'
 import {
+  AlertCircleIcon,
   Eye,
   Loader2,
   Pencil,
   PencilLineIcon,
+  Plus,
+  Terminal,
   Trash,
-  XCircle,
 } from 'lucide-react'
 import axios from 'axios'
 import useLocation from '@/hooks/useLocation'
@@ -37,7 +37,6 @@ import LocationSelect from './LocationSelect'
 import { useRouter } from 'next/navigation'
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -45,6 +44,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog'
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
+import AddRoomForm from '../room/AddRoomForm'
 
 interface AddHotelFormProps {
   hotel: HotelWithRooms | null
@@ -93,6 +94,7 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
   const [states, setStates] = useState<IState[]>([])
   const [cities, setCities] = useState<ICity[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [openAddRoom, setOpenAddRoom] = useState(false)
 
   const { toast } = useToast()
   const router = useRouter()
@@ -256,6 +258,10 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
     }
   }
 
+  const handleDialogOpen = () => {
+    setOpenAddRoom((prev) => !prev)
+  }
+
   return (
     <div>
       <Form {...form}>
@@ -270,7 +276,9 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hotel Title</FormLabel>
+                    <FormLabel>
+                      Hotel Title <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormDescription>Provide your hotel name</FormDescription>
                     <FormControl>
                       <Input placeholder="Beach Hotel" {...field} />
@@ -285,7 +293,9 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hotel Description</FormLabel>
+                    <FormLabel>
+                      Hotel Description <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormDescription>
                       Provide your detail description of your hotel
                     </FormDescription>
@@ -320,6 +330,18 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                 states={states}
                 cities={cities}
               />
+
+              {hotel && !hotel.rooms.length && (
+                <Alert>
+                  <AlertCircleIcon className="h-4 w-4 stroke-black" />
+                  <AlertTitle>One last step!</AlertTitle>
+                  <AlertDescription>
+                    Your hotel was created successfully!
+                    <br />
+                    Please add some rooms to complete your hotel setup
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <div className="flex justify-between gap-2 flex-wrap">
                 {hotel ? (
@@ -366,6 +388,30 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                   >
                     <Eye className="mr-2 h-4 w-4" /> View
                   </Button>
+                )}
+
+                {hotel && (
+                  <Dialog open={openAddRoom} onOpenChange={setOpenAddRoom}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        <Plus className="mr-2 h-4 w-4" /> Add Room
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-[900px] w-[90%]">
+                      <DialogHeader>
+                        <DialogTitle>Add a Room</DialogTitle>
+                        <DialogDescription>
+                          Add details about a room in your hotel.
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <AddRoomForm
+                        hotel={hotel}
+                        handleDialogOpen={handleDialogOpen}
+                        handleImageDelete={handleImageDelete}
+                      />
+                    </DialogContent>
+                  </Dialog>
                 )}
 
                 <Dialog>

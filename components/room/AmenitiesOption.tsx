@@ -13,12 +13,13 @@ import { Checkbox } from '../ui/checkbox'
 const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
   return (
     <div>
-      <FormLabel>Choose Amenities</FormLabel>
-      <FormDescription>Choose Amenities popular in your hotel</FormDescription>
-      <div className="grid grid-cols-2 gap-4 mt-2">
+      <FormLabel>Choose Room Amenities</FormLabel>
+      <FormDescription>What makes this room a good choice?</FormDescription>
+
+      <div className="grid grid-cols-2 gap-2 mt-2">
         <FormField
           control={form.control}
-          name="gym"
+          name="roomService"
           render={({ field }) => (
             <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
               <FormControl>
@@ -27,7 +28,7 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Gym</FormLabel>
+              <FormLabel>24hrs Room Service</FormLabel>
 
               <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
             </FormItem>
@@ -36,7 +37,7 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
 
         <FormField
           control={form.control}
-          name="spa"
+          name="TV"
           render={({ field }) => (
             <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
               <FormControl>
@@ -45,7 +46,7 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Spa</FormLabel>
+              <FormLabel>TV</FormLabel>
 
               <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
             </FormItem>
@@ -54,7 +55,7 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
 
         <FormField
           control={form.control}
-          name="bar"
+          name="balcony"
           render={({ field }) => (
             <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
               <FormControl>
@@ -63,97 +64,7 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Bar</FormLabel>
-
-              <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="laundry"
-          render={({ field }) => (
-            <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <FormLabel>Laundry</FormLabel>
-
-              <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="restaurant"
-          render={({ field }) => (
-            <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <FormLabel>Restaurant</FormLabel>
-
-              <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="shopping"
-          render={({ field }) => (
-            <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <FormLabel>Shopping</FormLabel>
-
-              <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="freeParking"
-          render={({ field }) => (
-            <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <FormLabel>Free Parking</FormLabel>
-
-              <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="bikeRental"
-          render={({ field }) => (
-            <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <FormLabel>Bike Rental</FormLabel>
+              <FormLabel>Balcony</FormLabel>
 
               <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
             </FormItem>
@@ -171,7 +82,7 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Free Wifi</FormLabel>
+              <FormLabel>Free wifi</FormLabel>
 
               <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
             </FormItem>
@@ -180,7 +91,7 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
 
         <FormField
           control={form.control}
-          name="movieNights"
+          name="cityView"
           render={({ field }) => (
             <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
               <FormControl>
@@ -189,7 +100,7 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Movie Nights</FormLabel>
+              <FormLabel>City view</FormLabel>
 
               <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
             </FormItem>
@@ -198,7 +109,7 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
 
         <FormField
           control={form.control}
-          name="swimmingPool"
+          name="oceanView"
           render={({ field }) => (
             <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
               <FormControl>
@@ -207,7 +118,7 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Swimming Pool</FormLabel>
+              <FormLabel>Ocean view</FormLabel>
 
               <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
             </FormItem>
@@ -216,7 +127,7 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
 
         <FormField
           control={form.control}
-          name="coffeeShop"
+          name="forestView"
           render={({ field }) => (
             <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
               <FormControl>
@@ -225,7 +136,61 @@ const AmenitiesOption = ({ form }: { form: React.ReactNode | any }) => {
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <FormLabel>Coffee Shop</FormLabel>
+              <FormLabel>Forest view</FormLabel>
+
+              <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="mountainView"
+          render={({ field }) => (
+            <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <FormLabel>Mountain view</FormLabel>
+
+              <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="airCondition"
+          render={({ field }) => (
+            <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <FormLabel>Air condition</FormLabel>
+
+              <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="soundProofed"
+          render={({ field }) => (
+            <FormItem className="flex items-center rounded-md border p-4 space-y-0 gap-4 bg-white relative">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <FormLabel>Sound Proofed</FormLabel>
 
               <FormLabel className="absolute inset-0 z-10 cursor-pointer"></FormLabel>
             </FormItem>
