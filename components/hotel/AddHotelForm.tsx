@@ -46,6 +46,8 @@ import {
 } from '../ui/dialog'
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
 import AddRoomForm from '../room/AddRoomForm'
+import RoomCard from '../room/RoomCard'
+import { Separator } from '../ui/separator'
 
 interface AddHotelFormProps {
   hotel: HotelWithRooms | null
@@ -460,6 +462,23 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                   </DialogContent>
                 </Dialog>
               </div>
+
+              {hotel && hotel.rooms.length > 0 && (
+                <div>
+                  <Separator />
+                  <h3 className="text-lg font-semibold my-4">Hotel rooms</h3>
+                  <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6">
+                    {hotel.rooms.map((room) => (
+                      <RoomCard
+                        room={room}
+                        hotel={hotel}
+                        key={room.id}
+                        handleImageDelete={handleImageDelete}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </form>
