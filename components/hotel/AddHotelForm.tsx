@@ -276,7 +276,9 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hotel Title</FormLabel>
+                    <FormLabel>
+                      Hotel Title <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormDescription>Provide your hotel name</FormDescription>
                     <FormControl>
                       <Input placeholder="Beach Hotel" {...field} />
@@ -291,7 +293,9 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hotel Description</FormLabel>
+                    <FormLabel>
+                      Hotel Description <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormDescription>
                       Provide your detail description of your hotel
                     </FormDescription>
@@ -404,6 +408,7 @@ const AddHotelForm = ({ hotel }: AddHotelFormProps) => {
                       <AddRoomForm
                         hotel={hotel}
                         handleDialogOpen={handleDialogOpen}
+                        handleImageDelete={handleImageDelete}
                       />
                     </DialogContent>
                   </Dialog>

@@ -58,7 +58,9 @@ const LocationSelect = ({
           name="country"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Select Country</FormLabel>
+              <FormLabel>
+                Select Country <span className="text-red-500">*</span>
+              </FormLabel>
               <FormDescription>
                 In which country is your property located
               </FormDescription>
@@ -166,7 +168,9 @@ const LocationSelect = ({
         name="locationDescription"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Location Description</FormLabel>
+            <FormLabel>
+              Location Description <span className="text-red-500">*</span>
+            </FormLabel>
             <FormDescription>
               Provide your detail location description of your hotel
             </FormDescription>

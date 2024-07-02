@@ -35,7 +35,9 @@ const UploadImage = ({
       name="image"
       render={({ field }) => (
         <FormItem className="flex flex-col space-y-3">
-          <FormLabel>Upload an Image *</FormLabel>
+          <FormLabel>
+            Upload an Image <span className="text-red-500">*</span>
+          </FormLabel>
           <FormDescription>
             Choose an image that will show-case your hotel
           </FormDescription>
