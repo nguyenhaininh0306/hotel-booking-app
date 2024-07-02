@@ -6,9 +6,10 @@ import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import AmenityItem from '../AmenityItem'
-import { Dumbbell, MapPin, Waves } from 'lucide-react'
+import { Dumbbell, MapPin } from 'lucide-react'
 import useLocation from '@/hooks/useLocation'
 import { Button } from '../ui/button'
+import { FaSwimmer } from 'react-icons/fa'
 
 const HotelCard = ({ hotel }: { hotel: HotelWithRooms }) => {
   const pathname = usePathname()
@@ -28,7 +29,7 @@ const HotelCard = ({ hotel }: { hotel: HotelWithRooms }) => {
     <div
       onClick={() => handleClickHotel(hotel)}
       className={cn(
-        'col-span-1 cursor-pointer transition hover:scale-105',
+        'col-span-1 cursor-pointer transition drop-shadow-md hover:scale-105 hover:drop-shadow-lg',
         isMyHotel && 'cursor-default'
       )}
     >
@@ -53,7 +54,7 @@ const HotelCard = ({ hotel }: { hotel: HotelWithRooms }) => {
             </AmenityItem>
             {hotel.swimmingPool && (
               <AmenityItem>
-                <Waves className="w-4 h-4" /> Pool
+                <FaSwimmer size={18} /> Pool
               </AmenityItem>
             )}
             {hotel.gym && (
