@@ -66,6 +66,7 @@ const RoomCard = ({
   handleImageDelete,
 }: RoomCardProps) => {
   const [isLoading, setIsLoading] = useState(false)
+  const [bookingIsLoading, setBookingIsLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [date, setDate] = useState<DateRange | undefined>()
   const [totalPrice, setTotalPrice] = useState(room.roomPrice)
