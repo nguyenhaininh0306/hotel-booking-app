@@ -1,7 +1,7 @@
 'use client'
 
 import { Booking, Hotel, Room } from '@prisma/client'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Card,
   CardContent,
@@ -29,6 +29,7 @@ import {
   User,
   UtensilsCrossed,
   VolumeX,
+  Wand2,
   Wifi,
 } from 'lucide-react'
 import { Separator } from '../ui/separator'
@@ -47,8 +48,10 @@ import axios from 'axios'
 import { useToast } from '../ui/use-toast'
 import { DatePickerWithRange } from '../common/DateRangePicker'
 import { DateRange } from 'react-day-picker'
-import { differenceInCalendarDays } from 'date-fns'
+import { differenceInCalendarDays, eachDayOfInterval } from 'date-fns'
 import { Checkbox } from '../ui/checkbox'
+import { useAuth } from '@clerk/nextjs'
+import useBookRoom from '@/hooks/useBookRoom'
 
 interface RoomCardProps {
   hotel?: Hotel & {
@@ -77,6 +80,9 @@ const RoomCard = ({
   const isHotelDetailPage = pathname.includes('hotel-details')
   const router = useRouter()
   const { toast } = useToast()
+  const { userId } = useAuth()
+  const { paymentIntent, setRoomData, setClientSecret, setPaymentIntent } =
+    useBookRoom()
 
   useEffect(() => {
     if (date && date.from && date.to) {
@@ -96,6 +102,23 @@ const RoomCard = ({
       setTotalPrice(room.roomPrice)
     }
   }, [date, room.roomPrice, includeBreakfast])
+
+  const disabledDates = useMemo(() => {
+    let dates: Date[] = []
+
+    const roomBookings = booking.filter((item) => item.roomId === room.id)
+
+    roomBookings.forEach((item) => {
+      const range = eachDayOfInterval({
+        start: new Date(item.startDate),
+        end: new Date(item.endDate),
+      })
+
+      dates = [...dates, ...range]
+    })
+
+    return dates
+  }, [booking])
 
   const handleDialogOpen = () => {
     setOpen((prev) => !prev)
@@ -133,6 +156,80 @@ const RoomCard = ({
           description: 'Something went wrong',
         })
       })
+  }
+
+  const handleBookRoom = () => {
+    if (!userId)
+      return toast({
+        variant: 'destructive',
+        description: 'Unauthorized',
+      })
+
+    if (!hotel?.userId)
+      return toast({
+        variant: 'destructive',
+        description: 'Something went wrong, refresh tha page and try again!',
+      })
+
+    if (date?.from && date?.to) {
+      setBookingIsLoading(true)
+
+      const bookingRoomData = {
+        room,
+        totalPrice,
+        breakFastIncluded: includeBreakfast,
+        startDate: date.from,
+        endDate: date.to,
+      }
+
+      setRoomData(bookingRoomData)
+
+      fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          booking: {
+            hotelOwnerId: hotel.userId,
+            hotelId: hotel.id,
+            roomId: room.id,
+            startDate: date.from,
+            endDate: date.to,
+            breakFastIncluded: includeBreakfast,
+            totalPrice: totalPrice,
+          },
+          payment_intent_id: paymentIntent,
+        }),
+      })
+        .then((res) => {
+          setBookingIsLoading(false)
+
+          if (res.status === 401) {
+            return router.push('/login')
+          }
+
+          return res.json()
+        })
+        .then((data) => {
+          setClientSecret(data.client_secret)
+          setPaymentIntent(data.id)
+
+          router.push('/book-room')
+        })
+        .catch((err: any) => {
+          console.log('Error: ', err)
+          toast({
+            variant: 'destructive',
+            description: `ERROR! ${err.message}`,
+          })
+        })
+    } else {
+      toast({
+        variant: 'destructive',
+        description: 'Oops! Select Date',
+      })
+    }
   }
 
   return (
@@ -243,12 +340,16 @@ const RoomCard = ({
 
       <CardFooter>
         {isHotelDetailPage ? (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 w-full">
             <div>
               <div className="mb-2">
                 Select days that you will spend in this room
               </div>
-              <DatePickerWithRange date={date} setDate={setDate} />
+              <DatePickerWithRange
+                date={date}
+                setDate={setDate}
+                disabledDates={disabledDates}
+              />
             </div>
             {date && date.to && date.from && (
               <>
@@ -275,6 +376,20 @@ const RoomCard = ({
                   Total price: <span className="font-bold">${totalPrice}</span>{' '}
                   for <span className="font-bold">{days} Days</span>
                 </div>
+
+                <Button
+                  disabled={bookingIsLoading}
+                  type="button"
+                  onClick={() => handleBookRoom()}
+                >
+                  {bookingIsLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Wand2 className="mr-2 h-4 w-4" />
+                  )}
+
+                  {bookingIsLoading ? 'Loading...' : 'Book room'}
+                </Button>
               </>
             )}
           </div>
