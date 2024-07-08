@@ -78,6 +78,7 @@ const RoomCard = ({
 
   const pathname = usePathname()
   const isHotelDetailPage = pathname.includes('hotel-details')
+  const isBookRoom = pathname.includes('book-room')
   const router = useRouter()
   const { toast } = useToast()
   const { userId } = useAuth()
@@ -106,7 +107,9 @@ const RoomCard = ({
   const disabledDates = useMemo(() => {
     let dates: Date[] = []
 
-    const roomBookings = booking.filter((item) => item.roomId === room.id)
+    const roomBookings = booking.filter(
+      (item) => item.roomId === room.id && item.paymentStatus
+    )
 
     roomBookings.forEach((item) => {
       const range = eachDayOfInterval({
@@ -335,107 +338,111 @@ const RoomCard = ({
             </div>
           )}
         </div>
-        <Separator />
       </CardContent>
-
-      <CardFooter>
-        {isHotelDetailPage ? (
-          <div className="flex flex-col gap-6 w-full">
-            <div>
-              <div className="mb-2">
-                Select days that you will spend in this room
-              </div>
-              <DatePickerWithRange
-                date={date}
-                setDate={setDate}
-                disabledDates={disabledDates}
-              />
-            </div>
-            {date && date.to && date.from && (
-              <>
-                {room.breakFastPrice > 0 && (
-                  <div>
-                    <div className="mb-2">
-                      Do you want to be served breakfast each day
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="breakFast"
-                        onCheckedChange={(value) =>
-                          setIncludeBreakfast(!!value)
-                        }
-                      />
-                      <label htmlFor="breakFast" className="text-sm">
-                        Include Breakfast
-                      </label>
-                    </div>
-                  </div>
-                )}
-
+      {!isBookRoom && (
+        <>
+          <Separator />
+          <CardFooter className="mt-4">
+            {isHotelDetailPage ? (
+              <div className="flex flex-col gap-6 w-full">
                 <div>
-                  Total price: <span className="font-bold">${totalPrice}</span>{' '}
-                  for <span className="font-bold">{days} Days</span>
+                  <div className="mb-2">
+                    Select days that you will spend in this room
+                  </div>
+                  <DatePickerWithRange
+                    date={date}
+                    setDate={setDate}
+                    disabledDates={disabledDates}
+                  />
                 </div>
+                {date && date.to && date.from && (
+                  <>
+                    {room.breakFastPrice > 0 && (
+                      <div>
+                        <div className="mb-2">
+                          Do you want to be served breakfast each day
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="breakFast"
+                            onCheckedChange={(value) =>
+                              setIncludeBreakfast(!!value)
+                            }
+                          />
+                          <label htmlFor="breakFast" className="text-sm">
+                            Include Breakfast
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      Total price:{' '}
+                      <span className="font-bold">${totalPrice}</span> for{' '}
+                      <span className="font-bold">{days} Days</span>
+                    </div>
+
+                    <Button
+                      disabled={bookingIsLoading}
+                      type="button"
+                      onClick={() => handleBookRoom()}
+                    >
+                      {bookingIsLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Wand2 className="mr-2 h-4 w-4" />
+                      )}
+
+                      {bookingIsLoading ? 'Loading...' : 'Book room'}
+                    </Button>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="flex w-full justify-between">
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <PencilLine className="mr-2 h-4 w-4" /> Update room
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[900px] w-[90%]">
+                    <DialogHeader>
+                      <DialogTitle>Update room</DialogTitle>
+                      <DialogDescription>
+                        Make changes to this room.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <AddRoomForm
+                      hotel={hotel}
+                      room={room}
+                      handleDialogOpen={handleDialogOpen}
+                      handleImageDelete={handleImageDelete}
+                    />
+                  </DialogContent>
+                </Dialog>
 
                 <Button
-                  disabled={bookingIsLoading}
+                  disabled={isLoading}
                   type="button"
-                  onClick={() => handleBookRoom()}
+                  variant="destructive"
+                  onClick={() => handleDeleteRoom(room)}
                 >
-                  {bookingIsLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4" />
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4" /> Deleting...
+                    </>
                   ) : (
-                    <Wand2 className="mr-2 h-4 w-4" />
+                    <>
+                      <Trash className="mr-2 h-4 w-4" /> Delete
+                    </>
                   )}
-
-                  {bookingIsLoading ? 'Loading...' : 'Book room'}
                 </Button>
-              </>
+              </div>
             )}
-          </div>
-        ) : (
-          <div className="flex w-full justify-between">
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <PencilLine className="mr-2 h-4 w-4" /> Update room
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-[900px] w-[90%]">
-                <DialogHeader>
-                  <DialogTitle>Update room</DialogTitle>
-                  <DialogDescription>
-                    Make changes to this room.
-                  </DialogDescription>
-                </DialogHeader>
-                <AddRoomForm
-                  hotel={hotel}
-                  room={room}
-                  handleDialogOpen={handleDialogOpen}
-                  handleImageDelete={handleImageDelete}
-                />
-              </DialogContent>
-            </Dialog>
-
-            <Button
-              disabled={isLoading}
-              type="button"
-              variant="destructive"
-              onClick={() => handleDeleteRoom(room)}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4" /> Deleting...
-                </>
-              ) : (
-                <>
-                  <Trash className="mr-2 h-4 w-4" /> Delete
-                </>
-              )}
-            </Button>
-          </div>
-        )}
-      </CardFooter>
+          </CardFooter>
+        </>
+      )}
     </Card>
   )
 }
