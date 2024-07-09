@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import useBookRoom from '@/hooks/useBookRoom'
@@ -22,6 +22,10 @@ const BookRoomClient = () => {
   const { theme } = useTheme()
   const router = useRouter()
 
+  useEffect(() => {
+    setPageLoad(true)
+  }, [])
+
   const option: StripeElementsOptions = {
     clientSecret,
     appearance: {
@@ -34,7 +38,7 @@ const BookRoomClient = () => {
     setPaymentSuccess(value)
   }
 
-  if (!paymentSuccess && (!bookingRoomData || !clientSecret))
+  if (pageLoad && !paymentSuccess && (!bookingRoomData || !clientSecret))
     return (
       <div className="flex items-center flex-col gap-4">
         <div>Oops! This page could not be property loaded...</div>
